@@ -1,0 +1,31 @@
+{
+      "project_info": {
+          "project_number": "524635628314",
+              "project_id": "vehicle-tracking-d9ba7",
+                  "storage_bucket": "vehicle-tracking-d9ba7.firebasestorage.app"
+                    },
+                      "client": [
+                          {
+                                "client_info": {
+                                        "mobilesdk_app_id": "1:524635628314:android:4de28120fa03829a93c2a3",
+                                                "android_client_info": {
+                                                          "package_name": "com.company.vehicletracker"
+                                                                  }
+                                                                        },
+                                                                              "oauth_client": [],
+                                                                                    "api_key": [
+                                                                                            {
+                                                                                                      "current_key": "AIzaSyBoN9IQIOLSDTcWe-cJJ88p4SkJ0ezfpGw"
+                                                                                                              }
+                                                                                                                    ],
+                                                                                                                          "services": {
+                                                                                                                                  "appinvite_service": {
+                                                                                                                                            "other_platform_oauth_client": []
+                                                                                                                                                    }
+                                                                                                                                                          }
+                                                                                                                                                              }
+                                                                                                                                                                ],
+                                                                                                                                                                  "configuration_version": "1"
+                                                                                                                                                                  }
+                                                                                                                                                                  
+}
