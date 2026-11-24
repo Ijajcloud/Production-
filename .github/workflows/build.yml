@@ -2,85 +2,81 @@ name: Build Vehicle Tracker APK
 
 on:
   workflow_dispatch:
-    push:
-        branches:
-              - main
+  push:
+    branches:
+      - main
 
-              jobs:
-                build:
-                    runs-on: ubuntu-latest
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-                        steps:
-                              - name: Checkout
-                                      uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-                                            - name: Setup Java
-                                                    uses: actions/setup-java@v4
-                                                            with:
-                                                                      distribution: temurin
-                                                                                java-version: "17"
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-                                                                                      - name: Setup Flutter
-                                                                                              uses: subosito/flutter-action@v2
-                                                                                                      with:
-                                                                                                                channel: stable
-                                                                                                                          cache: true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
 
-                                                                                                                                - name: Create Android project
-                                                                                                                                        run: |
-                                                                                                                                                  flutter create --org com.company --project-name vehicletracker --platforms=android build_app
+      - name: Create Android project
+        run: |
+          flutter create --org com.company --project-name vehicletracker --platforms=android build_app
 
-                                                                                                                                                        - name: Copy Flutter files
-                                                                                                                                                                run: |
-                                                                                                                                                                          cp app/pubspec.yaml build_app/pubspec.yaml
-                                                                                                                                                                                    cp app/main.dart build_app/lib/main.dart
-                                                                                                                                                                                              mkdir -p build_app/android/app
-                                                                                                                                                                                                        cp app/google-services.json build_app/android/app/google-services.json
+      - name: Copy app files
+        run: |
+          cp app/pubspec.yaml build_app/pubspec.yaml
+          cp app/main.dart build_app/lib/main.dart
+          mkdir -p build_app/android/app
+          cp app/google-services.json build_app/android/app/
 
-                                                                                                                                                                                                              - name: Configure Firebase
-                                                                                                                                                                                                                      run: |
-                                                                                                                                                                                                                                python3 - <<'PY'
-                                                                                                                                                                                                                                          from pathlib import Path
+      - name: Configure Firebase
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
 
-                                                                                                                                                                                                                                                    android = Path("build_app/android")
-                                                                                                                                                                                                                                                              settings = next((p for p in [android / "settings.gradle", android / "settings.gradle.kts"] if p.exists()), None)
-                                                                                                                                                                                                                                                                        app = next((p for p in [android / "app/build.gradle", android / "app/build.gradle.kts"] if p.exists()), None)
+          android = Path("build_app/android")
+          settings = next(p for p in [android/"settings.gradle", android/"settings.gradle.kts"] if p.exists())
+          app = next(p for p in [android/"app/build.gradle", android/"app/build.gradle.kts"] if p.exists())
 
-                                                                                                                                                                                                                                                                                  if settings is None or app is None:
-                                                                                                                                                                                                                                                                                                raise SystemExit("Android Gradle files not found")
+          s = settings.read_text()
+          if "com.google.gms.google-services" not in s:
+              s = s.replace(
+                  "plugins {",
+                  'plugins {\n    id("com.google.gms.google-services") version "4.4.2" apply false',
+                  1
+              )
+              settings.write_text(s)
 
-                                                                                                                                                                                                                                                                                                          s = settings.read_text()
-                                                                                                                                                                                                                                                                                                                    if "com.google.gms.google-services" not in s:
-                                                                                                                                                                                                                                                                                                                                  s = s.replace(
-                                                                                                                                                                                                                                                                                                                                                    "plugins {",
-                                                                                                                                                                                                                                                                                                                                                                      'plugins {\n    id("com.google.gms.google-services") version "4.4.2" apply false',
-                                                                                                                                                                                                                                                                                                                                                                                        1
-                                                                                                                                                                                                                                                                                                                                                                                                      )
-                                                                                                                                                                                                                                                                                                                                                                                                                    settings.write_text(s)
+          s = app.read_text()
+          if "com.google.gms.google-services" not in s:
+              s = s.replace(
+                  "plugins {",
+                  'plugins {\n    id("com.google.gms.google-services")',
+                  1
+              )
+              app.write_text(s)
+          PY
 
-                                                                                                                                                                                                                                                                                                                                                                                                                              s = app.read_text()
-                                                                                                                                                                                                                                                                                                                                                                                                                                        if "com.google.gms.google-services" not in s:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      s = s.replace(
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "plugins {",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          'plugins {\n    id("com.google.gms.google-services")',
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            1
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          )
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        app.write_text(s)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  PY
+      - name: Set minimum SDK
+        run: |
+          find build_app/android/app -name "build.gradle*" -type f -exec sed -i 's/flutter.minSdkVersion/23/g' {} +
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        - name: Set minimum SDK
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                run: |
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          find build_app/android/app -name "build.gradle*" -type f -exec sed -i 's/flutter.minSdkVersion/23/g' {} +
+      - name: Build APK
+        working-directory: build_app
+        run: |
+          flutter pub get
+          flutter build apk --release
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                - name: Build APK
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        working-directory: build_app
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                run: |
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          flutter pub get
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    flutter build apk --release
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          - name: Upload APK
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  uses: actions/upload-artifact@v4
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          with:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    name: vehicle-tracker-apk
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              path: build_app/build/app/outputs/flutter-apk/app-release.apk
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        if-no-files-found: error
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehicle-tracker-apk
+          path: build_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
