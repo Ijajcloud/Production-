@@ -1,6 +1,7 @@
+cat > pubspec.yaml <<'EOF'
 name: vehicletracker
 description: Vehicle stage tracker
-publish_to: none
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -13,6 +14,10 @@ environment:
             firebase_auth: any
               cloud_firestore: any
 
-              flutter:
-                uses-material-design: true
-                
+              dev_dependencies:
+                flutter_test:
+                    sdk: flutter
+
+                    flutter:
+                      uses-material-design: true
+                      EOF
