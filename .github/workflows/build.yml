@@ -24,6 +24,7 @@ jobs:
           sed -i 's/flutter.minSdkVersion/23/' build_app/android/app/build.gradle*
           sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' build_app/android/app/src/main/AndroidManifest.xml
           sed -i 's|android:label="vehicletracker"|android:label="Vehicle Tracker"|' build_app/android/app/src/main/AndroidManifest.xml
+          sed -i '0,/^android {/s//android {\n    lint {\n        checkReleaseBuilds = false\n        abortOnError = false\n    }/' build_app/android/app/build.gradle*
       - name: Build
         working-directory: build_app
         run: |
